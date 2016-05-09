@@ -18,6 +18,8 @@
   #pragma long_calls
 #endif
 
+#define RFX2401C 0
+
 #include "common.h"
 #include "config/tx.h"
 #include "protocol/interface.h"
@@ -121,11 +123,22 @@ void CC2500_WriteData(u8 *dpbuffer, u8 len)
 void CC2500_SetTxRxMode(enum TXRX_State mode)
 {
     if(mode == TX_EN) {
+#if RFX2401C
         CC2500_WriteReg(CC2500_02_IOCFG0, 0x2F | 0x40);
         CC2500_WriteReg(CC2500_00_IOCFG2, 0x2F);
+#else
+    // non C version (RFX2401) needs CE signal high for both RX and TX
+        CC2500_WriteReg(CC2500_02_IOCFG0, 0x2F | 0x40); // TX/RXN
+        CC2500_WriteReg(CC2500_00_IOCFG2, 0x2F | 0x40); // CE
+#endif
     } else if (mode == RX_EN) {
+#if RFX2401C
         CC2500_WriteReg(CC2500_02_IOCFG0, 0x2F);
         CC2500_WriteReg(CC2500_00_IOCFG2, 0x2F | 0x40);
+#else
+        CC2500_WriteReg(CC2500_02_IOCFG0, 0x2F); // TX/RXN
+        CC2500_WriteReg(CC2500_00_IOCFG2, 0x2F | 0x40); // CE
+#endif
     } else {
         CC2500_WriteReg(CC2500_02_IOCFG0, 0x2F);
         CC2500_WriteReg(CC2500_00_IOCFG2, 0x2F);
